@@ -91,9 +91,37 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
+    num_explored = 0
+    start = Node(source, parent=None, action=None)
+    frontier = QueueFrontier()
+    frontier.add(start)
 
-    # TODO
-    raise NotImplementedError
+    explored = set()
+    while True:
+        if frontier.empty():
+            return None
+
+        node = frontier.remove()
+        num_explored += 1
+
+        if node.state == target:
+            actions = []
+            cells = []
+            while node.parent is not None:
+                actions.append(node.action)
+                cells.append(node.state)
+                node = node.parent
+            actions.reverse()
+            cells.reverse()
+            solution = list(zip(actions, cells))
+            return solution
+
+        explored.add(node.state)
+
+        for action, state in neighbors_for_person(node.state):
+            if not frontier.contains_state(state) and state not in explored:
+                child = Node(state, parent=node, action=action)
+                frontier.add(child)
 
 
 def person_id_for_name(name):
@@ -127,6 +155,8 @@ def neighbors_for_person(person_id):
     Returns (movie_id, person_id) pairs for people
     who starred with a given person.
     """
+    if person_id not in people:
+        return set()
     movie_ids = people[person_id]["movies"]
     neighbors = set()
     for movie_id in movie_ids:
